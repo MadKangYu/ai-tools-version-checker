@@ -12,8 +12,10 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m'
 
-# 로그 파일
-LOG_FILE="$HOME/.claude/auto_update.log"
+# 로그 파일 (날짜별)
+LOG_DATE=$(date '+%Y%m%d')
+LOG_FILE="$HOME/.claude/auto_update_${LOG_DATE}.log"
+LOG_LATEST="$HOME/.claude/auto_update.log"  # 최신 로그 심볼릭 링크
 BACKUP_DIR="$HOME/.claude/backups"
 mkdir -p "$HOME/.claude" "$BACKUP_DIR"
 
@@ -159,13 +161,18 @@ update_qmd() {
 }
 
 # 메인
+START_TIME=$(date '+%Y-%m-%d %H:%M:%S')
+START_TIMESTAMP=$(date +%s)
+
 log ""
 log "${BLUE}========================================${NC}"
 log "${BLUE}🤖 AI Tools 자동 업데이트 시작${NC}"
+log "${BLUE}📅 실행 시간: $START_TIME${NC}"
 log "${BLUE}========================================${NC}"
 log ""
 
-telegram_message="🤖 <b>AI Tools 자동 업데이트</b>\n\n"
+telegram_message="🤖 <b>AI Tools 자동 업데이트</b>\n"
+telegram_message+="📅 <b>실행 시간</b>: $START_TIME\n\n"
 updated_tools=()
 failed_tools=()
 
@@ -248,6 +255,20 @@ telegram_message+="  QMD: $(get_version 'qmd')"
 
 log "${BLUE}========================================${NC}"
 
+# 실행 완료 시간 및 소요 시간
+END_TIME=$(date '+%Y-%m-%d %H:%M:%S')
+END_TIMESTAMP=$(date +%s)
+DURATION=$((END_TIMESTAMP - START_TIMESTAMP))
+DURATION_MIN=$((DURATION / 60))
+DURATION_SEC=$((DURATION % 60))
+
+log ""
+log "${BLUE}⏱️  실행 완료 시간: $END_TIME${NC}"
+log "${BLUE}⏱️  소요 시간: ${DURATION_MIN}분 ${DURATION_SEC}초${NC}"
+
+telegram_message+="\n⏱️ <b>완료 시간</b>: $END_TIME"
+telegram_message+="\n⏱️ <b>소요 시간</b>: ${DURATION_MIN}분 ${DURATION_SEC}초"
+
 # Telegram 알림
 send_telegram "$telegram_message"
 
@@ -255,3 +276,10 @@ log ""
 log "✅ 자동 업데이트 완료"
 log "📝 로그: $LOG_FILE"
 log "💾 백업: $BACKUP_DIR"
+
+# 최신 로그 심볼릭 링크 생성
+ln -sf "$LOG_FILE" "$LOG_LATEST"
+
+# 30일 이상 된 로그 파일 삭제
+find "$HOME/.claude" -name "auto_update_*.log" -type f -mtime +30 -delete 2>/dev/null || true
+log "🗑️  30일 이상 된 로그 자동 삭제"
