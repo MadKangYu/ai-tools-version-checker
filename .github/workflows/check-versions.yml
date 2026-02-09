@@ -1,0 +1,54 @@
+name: Check AI Tools Versions
+
+on:
+  schedule:
+    # 매일 오전 9시 (KST 18:00 = UTC 09:00)
+    - cron: '0 9 * * *'
+  workflow_dispatch: # 수동 실행 가능
+  push:
+    branches: [main]
+
+jobs:
+  check-versions:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y curl jq
+
+      - name: Run version check
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          chmod +x ./check_versions.sh
+          ./check_versions.sh all
+
+      - name: Upload log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: version-check-log
+          path: ~/.claude/version_check.log
+          retention-days: 30
+
+      - name: Create issue if updates needed
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const logContent = fs.readFileSync(process.env.HOME + '/.claude/version_check.log', 'utf8');
+
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: '⚠️ AI Tools 업데이트 필요',
+              body: `## 버전 체크 결과\n\n업데이트가 필요한 도구가 발견되었습니다.\n\n\`\`\`\n${logContent}\n\`\`\`\n\n자동 생성된 이슈입니다.`,
+              labels: ['update-required']
+            });
