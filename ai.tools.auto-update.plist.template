@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>ai.tools.auto-update</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/bash</string>
+        <!-- 여기를 자신의 경로로 수정하세요 -->
+        <string>/Users/YOUR_USERNAME/ai-tools-version-checker/auto_update.sh</string>
+    </array>
+
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Hour</key>
+        <integer>9</integer>
+        <key>Minute</key>
+        <integer>0</integer>
+    </dict>
+
+    <key>StandardOutPath</key>
+    <string>/Users/YOUR_USERNAME/.claude/auto_update_stdout.log</string>
+
+    <key>StandardErrorPath</key>
+    <string>/Users/YOUR_USERNAME/.claude/auto_update_stderr.log</string>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/Users/YOUR_USERNAME/.bun/bin</string>
+        <key>HOME</key>
+        <string>/Users/YOUR_USERNAME</string>
+        <!-- Telegram 설정 (선택사항) -->
+        <!-- <key>TELEGRAM_BOT_TOKEN</key> -->
+        <!-- <string>your_bot_token_here</string> -->
+        <!-- <key>TELEGRAM_CHAT_ID</key> -->
+        <!-- <string>your_chat_id_here</string> -->
+    </dict>
+
+    <key>RunAtLoad</key>
+    <false/>
+
+    <key>KeepAlive</key>
+    <false/>
+</dict>
+</plist>
